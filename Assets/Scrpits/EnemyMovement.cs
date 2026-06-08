@@ -1,10 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
+using Unity.VisualScripting;
 using UnityEngine;
 
+public enum EnemyState
+    {
+        Stand=0,
+        Chase=1,
+        Attack=2,
+    }
 public class EnemyMovement : MonoBehaviour
 {
+    
     private float attackCooldown = 1.5f;      // 攻击间隔（秒）
     private float lastAttackTime = -10f;      // 上次攻击时间
     public int damage = 1;
@@ -13,9 +20,6 @@ public class EnemyMovement : MonoBehaviour
     private float distance = 10;
     public float speed = 2;
     public Animator enemyAnim;
-    private bool isChasing = false;//追逐状态
-    private bool isAttack = false;//攻击状态
-    private bool isStand = true;//待机状态
     private Transform player;
     private Rigidbody2D rb;
     private int facingDirection = 1;
@@ -23,8 +27,8 @@ public class EnemyMovement : MonoBehaviour
     public PlayerHealth playerHealth;
     public PlayerMove playerMove;
     private bool enmity;//判断是否在仇恨范围内
-    bool isAttacked = false;
-
+    private bool isAttacked = false;
+    EnemyState state=EnemyState.Stand;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -32,23 +36,23 @@ public class EnemyMovement : MonoBehaviour
     }
     void Update()
     {
-        if (isAttacked == false)
+        if (!isAttacked)
         {
             if (player != null) distance = (player.position - transform.position).magnitude;
 
             // 如果不在攻击状态且进入攻击范围，触发攻击
-            if (!isAttack && distance <= attackRange)
+            if (state!=EnemyState.Attack && distance <= attackRange)
             {
                 AttackAnim();
             }
             // 如果不在攻击状态且正在追逐，才移动
-            else if (isChasing && !isAttack)
+            else if (state==EnemyState.Chase)
             {
                 ChaseTurn();
             }
             else if (distance > attackRange && enmity == true)
             {
-                isChasing = true;
+                state = EnemyState.Chase;
             }
 
             ToAnimator();
@@ -63,7 +67,7 @@ public class EnemyMovement : MonoBehaviour
             {
                 player = collision.transform;
             }
-            isChasing = true;
+            state=EnemyState.Chase;
             enmity = true;
         }
     }
@@ -72,8 +76,7 @@ public class EnemyMovement : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player")
         {
-            isChasing = false;
-            isAttack = false;
+            state = EnemyState.Stand;
             enmity = false;
             player = null;
             //玩家退出仇恨范围后移速设置为零
@@ -93,8 +96,7 @@ public class EnemyMovement : MonoBehaviour
         {
             Turn(); // 玩家在右侧，且当前朝左 → 转向右
         }
-            isChasing = true;
-            isStand = false;
+            state = EnemyState.Chase;
             rb.velocity = direction * speed;
         
     }
@@ -103,9 +105,7 @@ public class EnemyMovement : MonoBehaviour
         if (Time.time - lastAttackTime < attackCooldown) return; // 冷却中
 
         lastAttackTime = Time.time;
-        isStand = false;
-        isAttack = true;
-        isChasing = false;
+        state=EnemyState.Attack;
         rb.velocity = Vector2.zero;
         // 攻击动画触发，动画事件结束时调用 ResetToStand
     }
@@ -139,16 +139,18 @@ public class EnemyMovement : MonoBehaviour
     public void ResetToStand()
     {
        // Debug.Log("ResetToStand 被调用");
-        isAttack = false;
-        isStand = true;
+        state=EnemyState.Stand;
         rb.velocity = Vector2.zero;
     }
+
+
+    //此方法用来上传状态数据到动画控制
    private void ToAnimator()
     {
-        enemyAnim.SetBool("isChasing", isChasing);
-        enemyAnim.SetBool("isAttack", isAttack);
-        enemyAnim.SetBool("isStand", isStand);
-    }//此方法用来上传状态数据到动画控制
+       enemyAnim.SetInteger("EnemyState",(int)state);
+    }
+
+
     void Turn()
     {
         //改变朝向标识
@@ -156,13 +158,17 @@ public class EnemyMovement : MonoBehaviour
         //改变朝向
         transform.localScale = new Vector3(transform.localScale.x * -1, transform.localScale.y, transform.localScale.z);
     }//改变朝向
+
+
     public void KnockBack(Transform player,float force,float stunTime)
     {
-        isAttacked = true;
+        isAttacked=true;
         Vector2 direction = (transform.position - player.position).normalized;
         rb.velocity = direction * force;
         StartCoroutine(UnlockedMove(stunTime));
     }
+
+
     IEnumerator UnlockedMove(float stunTime)
     {
         yield return new WaitForSeconds(stunTime);
