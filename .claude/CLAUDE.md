@@ -67,10 +67,10 @@
 - 搞懂：数组连续内存、索引访问 O(1)、foreach vs for
 - 落地：攻击范围内所有敌人都受伤
 
-▢ **2. enum 替代多个 bool**
+✅ **2. enum 替代多个 bool** — 完成 (2026-06-08)
 - 触发：EnemyMovement 里 `isChasing` / `isAttack` / `isStand` 三 bool 互斥
 - 搞懂：为什么互斥状态用 enum 而不是 bool、状态机雏形
-- 落地：把敌人状态换成 `EnemyState` enum
+- 落地：把敌人状态换成 `EnemyState` enum，Animator 用一个 int 参数替代三个 bool
 
 ▢ **3. 委托/事件**
 - 触发：EnemyHealth 里敌人死了，ExpController 怎么知道？
