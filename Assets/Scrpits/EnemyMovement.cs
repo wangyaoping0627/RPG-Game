@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public enum EnemyState
@@ -96,7 +95,7 @@ public class EnemyMovement : MonoBehaviour
         {
             Turn(); // 玩家在右侧，且当前朝左 → 转向右
         }
-            state = EnemyState.Chase;
+           
             rb.velocity = direction * speed;
         
     }
