@@ -4,18 +4,42 @@ using UnityEngine;
 
 public class StatsManager : MonoBehaviour
 {
-    //ÊýÖµ¹ÜÀíµ¥Àý
     public static StatsManager Instance;
-    [Header("Õ½¶·ÊýÖµ")]
+
+    [Header("æˆ˜æ–—æ•°å€¼")]
     public int damage = 2;
     public float stunTime = 0.5f;
     public float KnockBackForce = 2;
-    public float weaponRange = 2 ;
-    [Header("ÉúÃüÊýÖµ")]
+    public float weaponRange = 2;
+
+    [Header("ç”Ÿå‘½æ•°å€¼")]
     public int maxHealth;
     public int currentHealth;
-    [Header("ÒÆ¶¯ÊýÖµ")]
+
+    [Header("ç§»åŠ¨æ•°å€¼")]
     public float speed = 5;
+
+    [Header("ç»éªŒæ•°å€¼")]
+    public int currentExp = 0;
+    public int maxExp = 10;
+    public int level = 0;
+
+    public void GainExp(int amount)
+    {
+        currentExp += amount;
+        if (currentExp >= maxExp)
+        {
+            LevelUp();
+        }
+    }
+
+    private void LevelUp()
+    {
+        level++;
+        currentExp -= maxExp;
+        maxExp += level + 3;
+    }
+
     private void Awake()
     {
         if (Instance == null)

@@ -1,35 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class ExpController : MonoBehaviour
 {
-    public int currentExp = 0;
-    public int maxExp = 10;
-    public int level = 0;
+    public Image expBar;
+    public TMPro.TMP_Text levelText;
 
-    private void Update()
+    private void Start()
     {
-        if (Input.GetKeyDown(KeyCode.Return))
+        EnemyHealth[] allEnemies = FindObjectsOfType<EnemyHealth>();
+        foreach (EnemyHealth enemy in allEnemies)
         {
-            GainExp(2);
+            if (enemy.gameObject.activeInHierarchy)
+            {
+                enemy.OnDeath += OnEnemyKilled;
+            }
         }
+        RefreshUI();
     }
-    public void GainExp(int amount)
+
+    private void OnEnemyKilled(int expValue)
     {
-        currentExp += amount;
-        if (currentExp >= maxExp)
-        {
-            LevelUp();
-        }
+        StatsManager.Instance.GainExp(expValue);
+        RefreshUI();
     }
-    public void LevelUp()
+
+    private void RefreshUI()
     {
-        level++;
-        currentExp -= maxExp;
-        maxExp += level + 3;
+        if (expBar != null)
+            expBar.fillAmount = (float)StatsManager.Instance.currentExp / StatsManager.Instance.maxExp;
+        if (levelText != null)
+            levelText.text = "Lv." + StatsManager.Instance.level;
     }
-    
-    
 }
