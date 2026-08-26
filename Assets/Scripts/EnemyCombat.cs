@@ -52,7 +52,7 @@ public class EnemyCombat : MonoBehaviour
         if (distance <= attackRange)
         {
             playerHealth.ChangeHealth(-damage);
-            Debug.Log($"敌人攻击玩家，造成{damage}点伤害");
+            Debug.Log($"敌人攻击玩家，造成{damage}点伤害-----------------");
             playerMove.KnockBack(transform, knockBackForce, stunTime);
         }
     }
