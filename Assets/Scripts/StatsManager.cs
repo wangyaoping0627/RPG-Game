@@ -12,9 +12,12 @@ public class StatsManager : MonoBehaviour
 
     [Header("战斗数值")]
     public int damage = 2;
+    public int defense = 0;
     public float stunTime = 0.5f;
     public float KnockBackForce = 2;
     public float weaponRange = 2;
+    public float critRate = 0.05f;
+    public float critMultiplier = 1.5f;
 
     [Header("生命数值")]
     public int maxHealth = 10;
