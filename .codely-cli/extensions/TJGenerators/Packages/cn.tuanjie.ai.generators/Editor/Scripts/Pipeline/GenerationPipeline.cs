@@ -29,6 +29,12 @@ namespace TJGenerators.Pipeline
         private const string SAVE_DIRECTORY = "Assets/TJGenerators/";
         private const string HISTORY_DIRECTORY = "Assets/TJGenerators/History/";
 
+        /// <summary>
+        /// 模型绑定到 Prefab 时的目标包裹尺寸（单位：米）。
+        /// 以模型包围盒最长边为准做归一化，使不同源头生成的 3D 模型在场景中大小一致、不用手动改 scale。
+        /// </summary>
+        private const float DefaultModelTargetSize = 1f;
+
         private IGenerationPipelineHost _host;
         private TJGeneratorsTaskHandle _activeTaskHandle;
         private IGenerationBackendTransport _transport;
@@ -845,12 +851,13 @@ namespace TJGenerators.Pipeline
             }
 
             // 绑定到Prefab：UniRig + 混元 Motion 后的 FBX 姿态/尺度已由管线决定，勿再套后处理里的 modelScale/rotation。
+            // 静态模型按包围盒自适应归一化到目标尺寸，避免模型过小（一个点）需要手动改 scale。
             bool addMotion = generator.GetAddMotionEnabled();
             float bindScale = addMotion ? 1f : _pipelineSettings.GetModelScale();
             Vector3 bindRotation = addMotion
                 ? Vector3.zero
                 : _pipelineSettings.GetModelRotation();
-            BindModelToPrefab(modelPathForBind, bindScale, bindRotation);
+            BindModelToPrefab(modelPathForBind, bindScale, bindRotation, autoFitToTargetScale: !addMotion);
 
             CompleteGeneration(generator, modelPathForBind);
         }
@@ -1327,6 +1334,22 @@ namespace TJGenerators.Pipeline
             Vector3 rotation = default
         )
         {
+            BindModelToPrefab(modelPath, scale, rotation, autoFitToTargetScale: true);
+        }
+
+        /// <summary>
+        /// 将生成的模型绑定到目标 Prefab，并按包围盒把模型自适应归一化到目标尺寸，
+        /// 避免不同生成器产出模型的原始单位差异导致绑定后模型在场景中过小（表现为一个点）。
+        /// 仅目标尺寸大于 0 且可计算到有效包围盒时才做归一化；此时忽略传入的 scale。
+        /// </summary>
+        public void BindModelToPrefab(
+            string modelPath,
+            float scale = 1f,
+            Vector3 rotation = default,
+            float targetSize = DefaultModelTargetSize,
+            bool autoFitToTargetScale = false
+        )
+        {
             var targetAsset = _host.GetTargetAsset();
             if (targetAsset == null || !targetAsset.IsValid())
                 return;
@@ -1377,6 +1400,14 @@ namespace TJGenerators.Pipeline
                     modelInstance.transform.localRotation = Quaternion.Euler(rotation);
                     modelInstance.transform.localScale = new Vector3(scale, scale, scale);
 
+                    // 模型如果小到几乎看不见（一个点），按包围盒自适应放大到目标尺寸。
+                    if (autoFitToTargetScale && targetSize > 0f)
+                    {
+                        float normalized = ComputeAutoFitScale(modelPrefab, targetSize);
+                        if (normalized > 0f)
+                            modelInstance.transform.localScale = new Vector3(normalized, normalized, normalized);
+                    }
+
                     ApplyDefaultMaterialIfMissing(modelInstance);
                 }
 
@@ -1423,6 +1454,43 @@ namespace TJGenerators.Pipeline
             RestoreSceneInstanceLocalTransforms(savedInstanceTransforms);
 
             TJLog.Log($"[GenerationPipeline] 模型已绑定到Prefab: {prefabPath}");
+        }
+
+        /// <summary>
+        /// 按模型所有渲染器包围盒的最长边计算归一化 scale，使其最长边恰好等于 targetSize。
+        /// 返回 targetSize / longestEdge。无可渲染网格、或包围盒无法计算/退化为 0 时返回 0（表示不做归一化）。
+        /// </summary>
+        private float ComputeAutoFitScale(GameObject modelPrefab, float targetSize)
+        {
+            var renderers = modelPrefab.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0)
+                return 0f;
+
+            var bounds = new Bounds();
+            bool hasBounds = false;
+            foreach (var r in renderers)
+            {
+                if (r == null) continue;
+                if (!hasBounds)
+                {
+                    bounds = r.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(r.bounds);
+                }
+            }
+
+            if (!hasBounds)
+                return 0f;
+
+            Vector3 size = bounds.size;
+            float longest = Mathf.Max(Mathf.Max(size.x, size.y), size.z);
+            if (longest <= Mathf.Epsilon)
+                return 0f;
+
+            return targetSize / longest;
         }
 
         /// <summary>

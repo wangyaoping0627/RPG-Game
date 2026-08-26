@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.24] - 2026-08-19
+
+### Added
+
+- 图片分层新增 Seedream Pro（`provider=seedream_pro`）：自动拆为 1 张底图 + 最多 16 个透明图层，prompt 可选，`num_layers` 忽略，支持 `size` 档位
+- Rodin 3D 模型新增面数上限 `qualityOverride`（CustomTool `quality_override`，500–2000000），优先于 quality 预设，等价 Tripo 的 faceLimit
+
+### Fixed
+
+- 图片生成显式传入 `is_segmentation` 时不再被 `outputFormat` 覆盖
+- 3D 模型绑定 Prefab 时按包围盒自动适配缩放，兼容 Unity 2019
+
+### Changed
+
+- Game UI Kit 默认改为 Seedream Pro：Step 1 生成 2848×1600 UI 截图，Step 2 图层拆分为底图 + 最多 16 层透明 PNG；`frontier` 品红底抠图拼版保留为旧路径
+- 资产库下载前同步调用后台 `record-download` 落账（首次扣费 / 去重），失败不阻断下载
+
 ## [1.0.23] - 2026-08-14
 
 ### Fixed
