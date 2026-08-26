@@ -24,9 +24,10 @@ public class HitstopController : MonoBehaviour
     private IEnumerator HitstopCoroutine(float duration)
     {
         isStopped = true;
-        Time.timeScale = 0.1f;  // 减速到 10%，不完全停止保持微弱动态
+        float prevTimeScale = Time.timeScale; // 记录进入前的 timeScale
+        Time.timeScale = 0.25f;  // 减速到 25%，保留顿帧手感，不再降到 10% 造成明显卡顿
         yield return new WaitForSecondsRealtime(duration);
-        Time.timeScale = 1f;
+        Time.timeScale = prevTimeScale; // 恢复原值，避免与暂停菜单(timeScale=0)打架
         isStopped = false;
     }
 }

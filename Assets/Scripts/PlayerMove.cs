@@ -11,17 +11,21 @@ public class PlayerMove : MonoBehaviour
     public int facingDirection = 1;
     public PlayerCombat playerCombat;
 
-    // 物理移动放在FixedUpdate，与物理引擎同步
-    void FixedUpdate()
+    // 攻击输入统一放 Update：FixedUpdate 一帧可能执行 0 次或多次，
+    // GetButtonDown 放 FixedUpdate 会丢键或一次按键触发两次攻击
+    void Update()
     {
-        // 击退状态：移动和攻击都锁定
-        if (isAttacked) return;
-
-        // 攻击输入（非击退状态下才处理）
         if (Input.GetButtonDown("Slash"))
         {
             playerCombat.Attack();
         }
+    }
+
+    // 物理移动放在FixedUpdate，与物理引擎同步
+    void FixedUpdate()
+    {
+        // 击退状态：锁定移动（攻击输入已移到 Update，不再被吞）
+        if (isAttacked) return;
 
         // 攻击前摇和判定帧：移动锁定（后摇期间可以移动）
         if (playerCombat.IsAttackLocked)

@@ -17,6 +17,7 @@ public class EnemyMovement : MonoBehaviour
 {
     private float distance = 10; // 与玩家的距离，初始设大值避免开局误判进入攻击范围
     public float speed = 2;
+    public float attackCooldown = 0.4f; // 攻击间隔：一次攻击结束后需等待才能再次攻击
     public Animator enemyAnim;
     public EnemyCombat enemyCombat;
     private Transform player;
@@ -25,6 +26,7 @@ public class EnemyMovement : MonoBehaviour
     private bool enmity; // 是否已发现玩家（进入过检测范围）
     private bool isAttacked = false; // 被击退时锁定行为
     private float attackStartTime;  // 攻击开始时间，用于超时保底
+    private float nextAttackTime;   // 下次允许攻击的时间（冷却）
     private const float MaxAttackDuration = 2f; // 单次攻击最长持续时间
     EnemyState state = EnemyState.Stand;
 
@@ -53,13 +55,19 @@ public class EnemyMovement : MonoBehaviour
 
         if (player != null) distance = (player.position - transform.position).magnitude;
 
-        // 在攻击范围内 → 攻击（无冷却，贴脸一直打）
-        // 在攻击范围外且已发现玩家 → 追击
+        // 在攻击范围内：冷却结束才出招，冷却期间原地待命（不发呆也不贴脸挤）
         if (state != EnemyState.Attack && distance <= enemyCombat.attackRange)
         {
-            state = EnemyState.Attack;
-            attackStartTime = Time.time;
-            rb.velocity = Vector2.zero;
+            if (Time.time >= nextAttackTime)
+            {
+                state = EnemyState.Attack;
+                attackStartTime = Time.time;
+                rb.velocity = Vector2.zero;
+            }
+            else
+            {
+                rb.velocity = Vector2.zero;
+            }
         }
         else if (state == EnemyState.Chase)
         {
@@ -114,33 +122,12 @@ public class EnemyMovement : MonoBehaviour
         rb.velocity = direction * speed;
     }
 
-    // 动画事件回调 → 攻击动画播完时调用，等0.1秒后再判断打还是追
+    // 动画事件回调 → 攻击动画播完时调用，进入攻击冷却
     public void ResetToStand()
     {
         state = EnemyState.Stand;
+        nextAttackTime = Time.time + attackCooldown; // 攻击冷却，冷却内 Update 不会重进 Attack
         rb.velocity = Vector2.zero;
-        ToAnimator();
-        StartCoroutine(WaitAndDecide(0.4f));
-    }
-
-    // 等0.1秒后判断：人在范围内→接着打，不在→追击
-    private IEnumerator WaitAndDecide(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (state == EnemyState.Death || state == EnemyState.HitStagger) yield break;
-
-        if (player != null && distance <= enemyCombat.attackRange)
-        {
-            state = EnemyState.Attack;
-            attackStartTime = Time.time;
-            rb.velocity = Vector2.zero;
-        }
-        else
-        {
-            state = enmity ? EnemyState.Chase : EnemyState.Stand;
-            rb.velocity = Vector2.zero;
-        }
         ToAnimator();
     }
 

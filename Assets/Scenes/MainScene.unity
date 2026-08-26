@@ -2829,7 +2829,7 @@ Tilemap:
       - {fileID: -224621186, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: 2103402456, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: 2144041620, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
-      m_AnimationSpeed: 3
+      m_AnimationSpeed: 3.0000002
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 39, y: -29, z: 0}
@@ -2946,7 +2946,7 @@ Tilemap:
       - {fileID: -294824487, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: 422907308, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: 816569130, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
-      m_AnimationSpeed: 3.0000002
+      m_AnimationSpeed: 3
       m_AnimationTimeOffset: 0
       m_Flags: 0
   m_TileAssetArray:
@@ -11809,6 +11809,7 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 64
+  attackCooldown: 1.2
 --- !u!1 &679415933
 GameObject:
   m_ObjectHideFlags: 0
@@ -12807,7 +12808,7 @@ Tilemap:
       - {fileID: 964507192, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: -684989659, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: -873316630, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
-      m_AnimationSpeed: 3.0000002
+      m_AnimationSpeed: 3
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -4, y: 1, z: 0}
@@ -13041,7 +13042,7 @@ Tilemap:
       - {fileID: 1090338384, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: 1650134535, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: -57710484, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
-      m_AnimationSpeed: 3.0000002
+      m_AnimationSpeed: 3
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -4, y: 8, z: 0}
@@ -13080,7 +13081,7 @@ Tilemap:
       - {fileID: -294824487, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: 422907308, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
       - {fileID: 816569130, guid: 2558476a469a92f4db5bd99ec367b9dc, type: 3}
-      m_AnimationSpeed: 3.0000002
+      m_AnimationSpeed: 3
       m_AnimationTimeOffset: 0
       m_Flags: 0
   m_TileAssetArray:
@@ -19485,6 +19486,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 2
+  attackCooldown: 0.4
   enemyAnim: {fileID: 1580203316}
   enemyCombat: {fileID: 0}
 --- !u!58 &1580203315

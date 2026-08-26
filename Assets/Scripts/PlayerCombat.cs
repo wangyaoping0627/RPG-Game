@@ -17,11 +17,15 @@ public class PlayerCombat : MonoBehaviour
     public Transform attackPoint;     // 保留，用于 Gizmo 可视化
     public LayerMask enemyLayer;      // 保留，用于 Gizmo 可视化
 
+    [Header("攻击参数")]
+    public float attackCooldown = 1.2f; // 攻击冷却时间（秒），冷却期内攻击输入被忽略
+    private float nextAttackTime;     // 下次允许攻击的时间
+
     private AttackPhase phase = AttackPhase.Idle;
     private bool inputBuffered = false; // 输入缓存
     private HashSet<GameObject> hitTargets = new HashSet<GameObject>(); // 本次攻击已命中的目标
     private float attackStartTime; // 攻击开始时间，用于超时保底
-    private const float MaxAttackDuration = 1.5f; // 单次攻击最长持续时间，超过则强制重置
+    private const float MaxAttackDuration = 0.8f; // 单次攻击最长持续时间，超过则强制重置
 
     /// 当前攻击阶段（外部只读）
     public AttackPhase Phase => phase;
@@ -58,6 +62,9 @@ public class PlayerCombat : MonoBehaviour
     /// 外部调用：尝试攻击，处理输入缓存
     public void Attack()
     {
+        // 冷却中：忽略输入（包括不缓存，避免冷却期内按键攒出连击）
+        if (Time.time < nextAttackTime) return;
+
         if (phase == AttackPhase.Idle)
         {
             StartAttack();
@@ -73,6 +80,7 @@ public class PlayerCombat : MonoBehaviour
     {
         phase = AttackPhase.Windup;
         attackStartTime = Time.time;
+        nextAttackTime = Time.time + attackCooldown;
         playerAnim.SetBool("isAttack", true);
     }
 
@@ -108,14 +116,20 @@ public class PlayerCombat : MonoBehaviour
     // 动画事件：后摇结束 → 回到 Idle，检查输入缓存
     public void FinishAttack()
     {
-        phase = AttackPhase.Idle;
-        playerAnim.SetBool("isAttack", false);
-
-        // 如果缓存了输入，立即开始下一次攻击
         if (inputBuffered)
         {
+            // 有缓存输入 → 不切换 isAttack（避免同帧 false→true Animator 不触发），
+            // 直接用 Play 重播攻击动画
             inputBuffered = false;
-            StartAttack();
+            phase = AttackPhase.Windup;
+            attackStartTime = Time.time;
+            nextAttackTime = Time.time + attackCooldown; // 重播同样计入冷却
+            playerAnim.Play(playerAnim.GetCurrentAnimatorStateInfo(0).fullPathHash, 0, 0f);
+        }
+        else
+        {
+            phase = AttackPhase.Idle;
+            playerAnim.SetBool("isAttack", false);
         }
     }
 
@@ -143,9 +157,9 @@ public class PlayerCombat : MonoBehaviour
             // 飘字：在敌人头顶弹出伤害数字
             if (DamageTextSpawner.Instance != null)
                 DamageTextSpawner.Instance.Spawn(other.transform.position, damage, isCrit);
-            // 顿帧：暴击 0.08s，普通 0.03s
-            if (HitstopController.Instance != null)
-                HitstopController.Instance.Hitstop(isCrit ? 0.08f : 0.03f);
+            // 顿帧：只保留暴击顿帧，普通命中不再全局减速（避免连续命中时反复卡顿）
+            if (isCrit && HitstopController.Instance != null)
+                HitstopController.Instance.Hitstop(0.08f);
             // 屏幕震动：暴击大幅，普通小幅
             if (CameraShake.Instance != null)
                 CameraShake.Instance.Shake(isCrit ? 0.15f : 0.05f, isCrit ? 0.15f : 0.05f);
