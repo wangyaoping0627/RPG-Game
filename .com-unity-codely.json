@@ -1,10 +1,10 @@
 {
-  "unity_port": 60319,
-  "stream_port": 50586,
+  "unity_port": 64753,
+  "stream_port": 49790,
   "created_date": "2026-08-15T21:24:42.307Z",
   "project_path": "D:/A工作文件/RPG/Assets",
   "reloading": false,
   "reason": "ready",
-  "seq": 2240,
-  "last_heartbeat": "2026-08-26T02:20:55.736Z"
+  "seq": 14904,
+  "last_heartbeat": "2026-08-27T03:55:55.035Z"
 }
