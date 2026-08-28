@@ -70,18 +70,22 @@
 ## 二、当前项目结构（截至记录时）
 
 ### 工程
-- 位置：`D:\A工作文件\RPG`（Unity 工程根，解决方案 RPG.sln；另有 2DGame.sln 旧文件）
+- 位置：`D:\A工作文件\RPG`（Unity 工程根，解决方案 RPG.sln；旧 2DGame.sln 已删）
 - 引擎版本：Unity 2022.3.62f3c1（团结引擎生态，含 cn.tuanjie.codely.bridge 1.0.76 + TJGenerators）
+- 架构文档：工程根 `README.md`（目录分层/数据流/事件表/关键约定），架构调整先看它
 
 ### 场景（Assets/Scenes）
 - `MainScene.unity`（主游戏场景）
 - `Start.unity`（开始场景）
 
-### 现有脚本（Assets/Scripts，共 17 个，无子目录）
-- 玩家：PlayerMove（移动）、PlayerCombat（攻击）、PlayerHealth（生命）、StatsManager（属性）、ExpController（经验）
-- 敌人：EnemyMovement（状态机/追击）、EnemyCombat（攻击）、EnemyHealth（生命）
-- 战斗：CombatCalculator（伤害计算）、DamageText / DamageTextSpawner（伤害飘字）、HitstopController（顿帧）、CameraShake（屏幕震动）
-- 场景/其他：LoadScene（场景加载）、Main（主入口）、StatsUI、MountainCollidersEnter/Exit（区域触发器）
+### 脚本目录（Assets/Scripts，按模块分层，共 24 个）
+- `Core/`：StatsManager（属性单例）、Main（入口）
+- `Player/`：PlayerMove、PlayerCombat、PlayerHealth
+- `Enemy/`：EnemyMovement（状态机）、EnemyCombat、EnemyHealth
+- `Items/`（掉落拾取数据链）：ItemData(SO)、ItemStack、Inventory、EquipmentManager、EnemyLoot（留在 Items 因其与掉落链耦合）、PickupSpawner、PickupItem
+- `Combat/`：CombatCalculator、DamageText、DamageTextSpawner、HitstopController、CameraShake
+- `UI/`：StatsUI、ExpController
+- `World/`：LoadScene、MountainCollidersEnter、MountainCollidersExit
 
 ### 美术资源
 - Assets/Spirits：动画文件夹、动画贴图、地面、建筑
@@ -95,5 +99,11 @@
 - cn.tuanjie.ai.generators（TJGenerators 本地包）、cn.tuanjie.codely.bridge 1.0.76
 
 ### 状态备注
-- 已有：移动/攻击（动画事件驱动）/击退硬直/敌人状态机/经验升级/伤害飘字/顿帧/震屏
-- 未做（第一阶段缺口）：道具数据架构(SO)、掉落表、拾取、背包、装备穿戴
+- 已有（第一版核心战斗循环基础）：移动/攻击（动画事件驱动）/击退硬直/敌人状态机（Stand→Chase→Attack→HitStagger→Death）/经验升级/伤害飘字/顿帧/震屏
+- **已实现（补齐第一版核心战斗循环）**：道具数据架构(SO)、掉落表、拾取、背包、装备穿戴
+  - `Assets/Scripts/Items/`（仅数据/逻辑，无 UI 无编辑器脚本）：ItemData(SO)、ItemStack、Inventory(40格)、EquipmentManager(5槽+增量法写回StatsManager)、EnemyLoot(掉落表)、PickupSpawner、PickupItem
+  - 改动：EnemyHealth(死亡触发掉落)、StatsManager(+NotifyStatsChanged)
+  - **UI 全部由用户自建**（曾做过的 ItemUI/InventoryChangedToast 已删）；拾取反馈靠订阅 `Inventory.OnChanged`，属性刷新靠订阅 `StatsManager.OnStatsChanged`/`EquipmentManager.OnChanged`
+  - **创建道具 = 手动**：右键 Create > RPG/Item 新建 SO 资产（曾有的批量生成器 SampleItemsEditor 已删，示例资产保留在 `Assets/_SampleItems/` 供参考）
+  - 敌人挂 `EnemyLoot` 组件 + 掉落表即可掉落
+- 未做：消耗品强化（药水回血逻辑由用户 UI 调用 `PlayerHealth.ChangeHealth`）、多种敌人、刷怪点、Boss、完整背包/装备面板 UI（阶段三）、存档系统（阶段四）、音效（阶段四）

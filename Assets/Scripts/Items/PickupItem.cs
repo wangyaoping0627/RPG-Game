@@ -1,6 +1,7 @@
 using UnityEngine;
 
-/// 掉落物拾取：玩家走过自动拾取进背包。背包满则忽略并提示。
+/// 掉落物拾取：玩家走过自动拾取进背包。背包满则不拾取。
+/// UI 反馈（获得提示/背包已满）由 UI 层订阅 Inventory.OnChanged 自行处理。
 public class PickupItem : MonoBehaviour
 {
     private ItemData _data;
@@ -21,13 +22,8 @@ public class PickupItem : MonoBehaviour
         if (Inventory.Add(_data, _count))
         {
             _picked = true;
-            InventoryChangedToast.Instance?.Show($"获得 [{_data.displayName}] x{_count}");
             Destroy(gameObject);
         }
-        else
-        {
-            // 背包满：不拾取，飘提示
-            InventoryChangedToast.Instance?.Show("背包已满");
-        }
+        // 背包满：不拾取（是否提示由 UI 决定）
     }
 }
