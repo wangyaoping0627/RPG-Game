@@ -7,6 +7,8 @@ using UnityEngine;
 /// 玩家血量系统：管理生命值并同步更新UI
 public class PlayerHealth : MonoBehaviour
 {
+    public static PlayerHealth Instance; // 供消耗品回血等外部调用
+
     public TMP_Text healthUI;
     public Animator healthUpdate;
     private bool isInvincible = false;
@@ -14,6 +16,7 @@ public class PlayerHealth : MonoBehaviour
 
     private void Start()
     {
+        Instance = this;
         // 订阅升级事件 — 升级后maxHealth变化时自动刷新HP显示
         StatsManager.OnStatsChanged += RefreshHealthUI;
         spriteRenderer = GetComponent<SpriteRenderer>();

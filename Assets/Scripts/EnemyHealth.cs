@@ -79,6 +79,9 @@ public class EnemyHealth : MonoBehaviour
         if (enemyMovement != null)
             enemyMovement.EnterDeath();
 
+        // 掉落系统：若敌人带有 EnemyLoot 组件，按掉落表生成掉落物
+        GetComponent<EnemyLoot>()?.SpawnDrops(transform.position);
+
         // 隐藏血条UI
         if (BloodUI != null)
             BloodUI.SetActive(false);

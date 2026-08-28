@@ -31,6 +31,9 @@ public class StatsManager : MonoBehaviour
     public int maxExp = 10;
     public int level = 0;
 
+    /// 外部触发属性变更广播（供装备系统等写回属性后刷新 UI）
+    public void NotifyStatsChanged() => OnStatsChanged?.Invoke();
+
     public void GainExp(int amount)
     {
         currentExp += amount;
