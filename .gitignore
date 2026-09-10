@@ -68,3 +68,11 @@ Thumbs.db
 # CodeGraph
 .codegraph/
 .cursor/rules/
+
+# ---- Codely / AI 工具缓存（不入库） ----
+.codely-cli/
+.codely.packages/
+.codely/
+.com-unity-codely.json
+.codelyignore
+.claude/
