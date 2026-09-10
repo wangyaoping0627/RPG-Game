@@ -22,6 +22,7 @@ public class PickupItem : MonoBehaviour
         if (Inventory.Add(_data, _count))
         {
             _picked = true;
+            AudioManager.Pickup();
             Destroy(gameObject);
         }
         // 背包满：不拾取（是否提示由 UI 决定）

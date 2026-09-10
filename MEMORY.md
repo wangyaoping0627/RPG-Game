@@ -1,7 +1,8 @@
 # RPG 项目记忆文件
 
 > 本文件是长期记忆，平时不用读。只有用户明确说"读记忆/读memory"时才读取。
-> 内容 = 策划文档要点 + 当前项目结构。源文档：`D:\A工作文件\RPG游戏策划文档.md`（如策划有更新，需同步本文件）。
+> **权威方案文档 = `D:\A工作文件\RPG实现方案.md`**（唯一方案，含全部设计 + 实现代码 + ✅/🟡/❌ 进度标记）。
+> 内容 = 策划要点 + 项目结构 + 开发进度摘要。策划/实现有更新同步 RPG实现方案.md，本文件摘要跟进。
 
 ---
 
@@ -72,20 +73,20 @@
 ### 工程
 - 位置：`D:\A工作文件\RPG`（Unity 工程根，解决方案 RPG.sln；旧 2DGame.sln 已删）
 - 引擎版本：Unity 2022.3.62f3c1（团结引擎生态，含 cn.tuanjie.codely.bridge 1.0.76 + TJGenerators）
-- 架构文档：工程根 `README.md`（目录分层/数据流/事件表/关键约定），架构调整先看它
+- 架构文档：工程根 `README.md`（目录分层/数据流/事件表/关键约定）；**唯一权威实现方案 = `D:\A工作文件\RPG实现方案.md`**（含全部设计 + 实现代码 + 进度状态），开发/改动先看它
 
 ### 场景（Assets/Scenes）
 - `MainScene.unity`（主游戏场景）
 - `Start.unity`（开始场景）
 
-### 脚本目录（Assets/Scripts，按模块分层，共 24 个）
-- `Core/`：StatsManager（属性单例）、Main（入口）
+### 脚本目录（Assets/Scripts，按模块分层，共 36 个）
+- `Core/`：StatsManager（属性单例）、Main（入口）、SaveSystem（存档）、SaveController（存档挂载点）、AudioManager（音频单例）
 - `Player/`：PlayerMove、PlayerCombat、PlayerHealth
-- `Enemy/`：EnemyMovement（状态机）、EnemyCombat、EnemyHealth
+- `Enemy/`：EnemyMovement（状态机，含 SetLocked 外部锁）、EnemyCombat、EnemyHealth、BossController（Boss 技能）
 - `Items/`（掉落拾取数据链）：ItemData(SO)、ItemStack、Inventory、EquipmentManager、EnemyLoot（留在 Items 因其与掉落链耦合）、PickupSpawner、PickupItem
 - `Combat/`：CombatCalculator、DamageText、DamageTextSpawner、HitstopController、CameraShake
-- `UI/`：StatsUI、ExpController
-- `World/`：LoadScene、MountainCollidersEnter、MountainCollidersExit
+- `UI/`：StatsUI、ExpController、MainMenu、PauseMenu、InventoryUI、EquipmentUI、HotbarUI、PickupToast
+- `World/`：LoadScene、MountainCollidersEnter、MountainCollidersExit、EnemySpawner（刷怪点）
 
 ### 美术资源
 - Assets/Spirits：动画文件夹、动画贴图、地面、建筑
@@ -98,12 +99,19 @@
 - com.unity.cinemachine 2.10.6、com.unity.feature.2d 2.0.1、com.unity.textmeshpro 3.0.7、com.unity.timeline 1.7.7、com.unity.ugui 1.0.0、visualscripting、2D 全套（Sprite/Tilemap/Animation/IK/PixelPerfect/PsdImporter）
 - cn.tuanjie.ai.generators（TJGenerators 本地包）、cn.tuanjie.codely.bridge 1.0.76
 
-### 状态备注
-- 已有（第一版核心战斗循环基础）：移动/攻击（动画事件驱动）/击退硬直/敌人状态机（Stand→Chase→Attack→HitStagger→Death）/经验升级/伤害飘字/顿帧/震屏
-- **已实现（补齐第一版核心战斗循环）**：道具数据架构(SO)、掉落表、拾取、背包、装备穿戴
-  - `Assets/Scripts/Items/`（仅数据/逻辑，无 UI 无编辑器脚本）：ItemData(SO)、ItemStack、Inventory(40格)、EquipmentManager(5槽+增量法写回StatsManager)、EnemyLoot(掉落表)、PickupSpawner、PickupItem
-  - 改动：EnemyHealth(死亡触发掉落)、StatsManager(+NotifyStatsChanged)
-  - **UI 全部由用户自建**（曾做过的 ItemUI/InventoryChangedToast 已删）；拾取反馈靠订阅 `Inventory.OnChanged`，属性刷新靠订阅 `StatsManager.OnStatsChanged`/`EquipmentManager.OnChanged`
-  - **创建道具 = 手动**：右键 Create > RPG/Item 新建 SO 资产（曾有的批量生成器 SampleItemsEditor 已删，示例资产保留在 `Assets/_SampleItems/` 供参考）
+### 状态备注（进度快照，权威详见 `D:\A工作文件\RPG实现方案.md` 第十八节）
+- ✅ 已完成：
+  - 战斗手感全套：攻击状态机(前摇/判定/后摇)、判定框Hitbox、输入缓存、攻击锁移动、无敌帧+受击闪烁、击退EaseOut曲线、伤害飘字/顿帧/震屏、伤害公式(攻防减伤/暴击/浮动)
+  - 敌人：5状态机(Stand/Chase/Attack/HitStagger/Death)、追击攻击、受击硬直、死亡动画销毁、血条UI
+  - 掉落链：ItemData(SO)、品质系统、掉落表(EnemyLoot)、动态掉落物(PickupSpawner)、自动拾取(PickupItem)、背包40格(Inventory)、装备穿脱+增量写回(EquipmentManager)
+  - 玩家：移动/加速/朝向、经验升级(StatsManager)、经验条+等级UI(ExpController)
+  - 场景：Start/MainScene、场景切换淡入淡出(LoadScene的Scene类)、山体碰撞边界
+- ✅ 本轮已完成：数值基线(damage=10/maxHealth=100/weaponRange=1.5，升级+3/+20)、weaponRange 生效(判定框 radius 跟随)、装备不再堆叠、物品资产迁移到 `Assets/Resources/Items/`
+- 🔵 代码已就绪待 Unity 接线(11 个)：MainMenu、PauseMenu、InventoryUI、EquipmentUI、HotbarUI、PickupToast、EnemySpawner(刷怪点)、BossController(Boss 技能)、SaveSystem(存档)、SaveController(存档挂载点)、AudioManager(音频)；音效接线已内建到 PlayerCombat/PlayerHealth/PickupItem/StatsManager/EnemyHealth；**接线步骤见 `D:\A工作文件\RPG_Unity接线清单.md`**
+- 🟡 简陋待打磨：玩家死亡(直接SetActive false)、连击(连按重播)、血条(纯文本)、属性面板(StatsUI仅3属性)、装备资产(Resources/Items 有12个示例)、README(缺截图)
+- ❌ 未实现：Unity 接线(搭UI/挂组件)、多种敌人(场景仅1只 HP=20)、敌人预制体化、音频资源生成、README补全+截图+视频
+- 关键实现约定（沿用）：
+  - **UI 全部由用户自建**；拾取反馈靠订阅 `Inventory.OnChanged`，属性刷新靠订阅 `StatsManager.OnStatsChanged`/`EquipmentManager.OnChanged`
+  - **创建道具 = 手动**：右键 Create > RPG/Item 新建 SO 资产；**必须放在 `Assets/Resources/Items/`**（存档靠 `Resources.LoadAll` 查回，已有 12 个示例资产）
   - 敌人挂 `EnemyLoot` 组件 + 掉落表即可掉落
-- 未做：消耗品强化（药水回血逻辑由用户 UI 调用 `PlayerHealth.ChangeHealth`）、多种敌人、刷怪点、Boss、完整背包/装备面板 UI（阶段三）、存档系统（阶段四）、音效（阶段四）
+  - **代码缺口**：`EquipmentManager.Equip` 不自动移出背包(穿戴前需 `Inventory.RemoveAt`)、`Unequip` 不自动放回背包(脱下后需 `Inventory.Add`)

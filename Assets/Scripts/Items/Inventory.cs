@@ -17,14 +17,17 @@ public static class Inventory
     /// 添加物品：堆叠或占用新格。成功返回 true（满格返回 false）
     public static bool Add(ItemData data, int count = 1)
     {
-        // 非消耗品/材料也可堆叠，由 count 控制；装备默认1件占1格
-        foreach (var stack in Items)
+        // 装备不堆叠：同类装备各自占一格（两把木剑 = 两格，而非 x2）
+        if (data.type != ItemType.Equipment)
         {
-            if (stack.data == data)
+            foreach (var stack in Items)
             {
-                stack.count += count;
-                OnChanged?.Invoke();
-                return true;
+                if (stack.data == data)
+                {
+                    stack.count += count;
+                    OnChanged?.Invoke();
+                    return true;
+                }
             }
         }
 

@@ -95,6 +95,11 @@ public class PlayerCombat : MonoBehaviour
 
         if (hitboxCollider != null)
         {
+            // weaponRange 生效：圆形判定框半径 = 当前武器范围（换武器/装备加成即时生效）
+            var circle = hitboxCollider as CircleCollider2D;
+            if (circle != null && StatsManager.Instance != null)
+                circle.radius = StatsManager.Instance.weaponRange;
+
             hitboxCollider.enabled = true;
             hitTargets.Clear();
         }
@@ -152,6 +157,9 @@ public class PlayerCombat : MonoBehaviour
 
             enemyHealth.TakeDamage(damage, transform, isCrit);
             hitTargets.Add(other.gameObject);
+
+            // 音效：暴击/普通区分
+            AudioManager.Hit(isCrit);
 
             // === 打击感三件套 ===
             // 飘字：在敌人头顶弹出伤害数字

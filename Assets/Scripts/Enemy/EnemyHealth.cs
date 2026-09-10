@@ -36,6 +36,10 @@ public class EnemyHealth : MonoBehaviour
     {
         currentHealth = maxHealth;
         enemyMovement = GetComponent<EnemyMovement>();
+
+        // 血条初始化为满血，不依赖场景里手设的 Fill Amount
+        if (Image != null) Image.fillAmount = 1f;
+        if (BloodUI != null) BloodUI.SetActive(true);
     }
 
     /// 受击统一入口：扣血 → 受击硬直 / 死亡
@@ -71,6 +75,9 @@ public class EnemyHealth : MonoBehaviour
     {
         isDead = true;
 
+        // 音效：敌人死亡
+        AudioManager.EnemyDeath();
+
         // 广播死亡事件，传递经验值给订阅者
         OnDeath?.Invoke(expValue);
         OnAnyEnemyDeath?.Invoke(expValue);
@@ -82,12 +89,20 @@ public class EnemyHealth : MonoBehaviour
         // 掉落系统：若敌人带有 EnemyLoot 组件，按掉落表生成掉落物
         GetComponent<EnemyLoot>()?.SpawnDrops(transform.position);
 
-        // 隐藏血条UI
-        if (BloodUI != null)
-            BloodUI.SetActive(false);
+        // 血条不在这里隐藏：血条是场景里的独立对象（靠 PositionConstraint 跟随敌人），
+        // 此刻隐藏会造成「血条先消失、敌人（死亡动画播完/2 秒保底后）才消失」的不同步。
+        // 改为在 OnDestroy 里随敌人一起销毁，保证两者同生共死。
 
         // 保底：2秒后销毁，防止没有死亡动画事件导致敌人不消失
         StartCoroutine(DestroyAfterDelay(2f));
+    }
+
+    private void OnDestroy()
+    {
+        // 血条是独立对象，不会随敌人自动销毁，这里让它和敌人同时消失。
+        // 若以后把血条改成敌人的子物体，则无需处理（随父物体一起销毁）。
+        if (BloodUI != null && BloodUI.transform.parent != transform)
+            Destroy(BloodUI);
     }
 
     private IEnumerator DestroyAfterDelay(float delay)

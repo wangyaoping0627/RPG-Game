@@ -28,6 +28,7 @@ public class EnemyMovement : MonoBehaviour
     private float attackStartTime;  // 攻击开始时间，用于超时保底
     private float nextAttackTime;   // 下次允许攻击的时间（冷却）
     private const float MaxAttackDuration = 2f; // 单次攻击最长持续时间
+    private bool externallyLocked = false; // 外部（Boss 技能等）锁定 AI
     EnemyState state = EnemyState.Stand;
 
     // 对外暴露玩家引用，供EnemyCombat读取距离
@@ -44,8 +45,8 @@ public class EnemyMovement : MonoBehaviour
 
     void Update()
     {
-        // 受击硬直和死亡状态下，跳过所有 AI 逻辑
-        if (isAttacked || state == EnemyState.HitStagger || state == EnemyState.Death) return;
+        // 受击硬直、死亡、被外部锁定时，跳过所有 AI 逻辑
+        if (isAttacked || externallyLocked || state == EnemyState.HitStagger || state == EnemyState.Death) return;
 
         // 攻击状态超时保底：ResetToStand 动画事件未触发则强制恢复
         if (state == EnemyState.Attack && Time.time - attackStartTime > MaxAttackDuration)
@@ -142,6 +143,13 @@ public class EnemyMovement : MonoBehaviour
     {
         facingDirection *= -1;
         transform.localScale = new Vector3(transform.localScale.x * -1, transform.localScale.y, transform.localScale.z);
+    }
+
+    /// 外部锁定 AI（Boss 技能期间调用）：锁定时停止移动与状态切换
+    public void SetLocked(bool locked)
+    {
+        externallyLocked = locked;
+        if (locked && rb != null) rb.velocity = Vector2.zero;
     }
 
     // === 受击硬直：被玩家攻击时调用 ===

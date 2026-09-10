@@ -11,17 +11,17 @@ public class StatsManager : MonoBehaviour
     public static event Action OnStatsChanged;
 
     [Header("战斗数值")]
-    public int damage = 2;
+    public int damage = 10;
     public int defense = 0;
     public float stunTime = 0.5f;
     public float KnockBackForce = 2;
-    public float weaponRange = 2;
+    public float weaponRange = 1.5f;
     public float critRate = 0.05f;
     public float critMultiplier = 1.5f;
 
     [Header("生命数值")]
-    public int maxHealth = 10;
-    public int currentHealth = 10;
+    public int maxHealth = 100;
+    public int currentHealth = 100;
 
     [Header("移动数值")]
     public float speed = 5;
@@ -49,9 +49,10 @@ public class StatsManager : MonoBehaviour
         level++;
         currentExp -= maxExp;
         maxExp += level + 3;
-        damage += 1;
-        maxHealth += 5;
+        damage += 3;
+        maxHealth += 20;
         currentHealth = maxHealth;
+        AudioManager.LevelUp();
         OnStatsChanged?.Invoke();
     }
 

@@ -49,6 +49,9 @@ public class PlayerHealth : MonoBehaviour
 
         ChangeHealth(-damage);
 
+        // 音效：受击
+        AudioManager.Hurt();
+
         // 飘字：红色，在玩家头顶
         if (DamageTextSpawner.Instance != null)
             DamageTextSpawner.Instance.Spawn(transform.position, damage, false);
